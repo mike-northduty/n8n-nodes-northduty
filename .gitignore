@@ -1,3 +1,4 @@
 dist
 node_modules
 push-to-github.sh
+release-*.sh

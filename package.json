@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-northduty",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "n8n community node for NorthDuty: user journey monitoring (checkout, signup, login, forms) plus uptime, SSL, domain and site health checks, with alerts the moment something breaks",
 	"keywords": [
 		"n8n-community-node-package",
@@ -41,6 +41,9 @@
 	"files": [
 		"dist"
 	],
+	"publishConfig": {
+		"access": "public"
+	},
 	"n8n": {
 		"n8nNodesApiVersion": 1,
 		"strict": true,
