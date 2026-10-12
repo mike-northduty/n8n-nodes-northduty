@@ -1,6 +1,6 @@
 # n8n-nodes-northduty
 
-This is an n8n community node for [NorthDuty](https://northduty.com). NorthDuty runs your checkout, signup, login and form journeys in a real browser on a schedule, and checks every site for uptime, response time, SSL and domain expiry and overall health. This node lets you start an n8n workflow the moment NorthDuty raises an alert, and read alerts and projects from your account.
+This is the [verified NorthDuty integration for n8n](https://n8n.io/integrations/northduty/), built and maintained by [NorthDuty](https://northduty.com) and verified by n8n. NorthDuty runs your checkout, signup, login and form journeys in a real browser on a schedule, and checks every site for uptime, response time, SSL and domain expiry and overall health. The integration lets you start an n8n workflow the moment NorthDuty raises an alert, and read alerts and projects from your account.
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
@@ -14,7 +14,7 @@ This is an n8n community node for [NorthDuty](https://northduty.com). NorthDuty 
 
 ## Installation
 
-Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation. The package name is `n8n-nodes-northduty`.
+Find [NorthDuty in the n8n integration directory](https://n8n.io/integrations/northduty/) and add it from the Nodes panel. An instance owner may need to complete the [one-time verified-node setup](https://docs.n8n.io/integrations/community-nodes/installation/verified-install/) first. The package name is `n8n-nodes-northduty`.
 
 ## Operations
 
@@ -78,4 +78,6 @@ Every alert arrives as one item with the payload shown above, so later nodes can
 ## Resources
 
 - [NorthDuty n8n integration guide](https://northduty.com/integrations/n8n/)
-- [n8n community nodes documentation](https://docs.n8n.io/integrations/community-nodes/)
+- [NorthDuty in the n8n integration directory](https://n8n.io/integrations/northduty/)
+- [NorthDuty Trigger in the n8n integration directory](https://n8n.io/integrations/northduty-trigger/)
+- [Using verified nodes in n8n](https://docs.n8n.io/integrations/community-nodes/installation/verified-install/)

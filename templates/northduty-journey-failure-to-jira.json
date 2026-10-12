@@ -1,0 +1,143 @@
+{
+  "name": "Create Jira issues for critical NorthDuty journey failures",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Create Jira issues for critical NorthDuty journey failures\n\nThis workflow is for product, ecommerce, support, and agency teams that manage customer-facing website incidents in Jira. It turns a failed NorthDuty browser journey into an actionable Jira issue without asking someone to copy details out of an alert.\n\nNorthDuty runs journeys such as checkout, signup, login, and form submission in a real browser. The trigger in this template listens only for **critical user journey failures** on the project you select. The Edit Fields node prepares a concise issue summary and a description with the affected website, NorthDuty incident ID, failure message, detection time, and dashboard link. Jira then creates the issue in the project and issue type you choose.\n\n### Setup\n1. Add NorthDuty API credentials and select the monitored project.\n2. Add Jira credentials, then select the Jira project and issue type.\n3. Activate the workflow so NorthDuty can register the webhook.\n\nThe trigger requires a NorthDuty plan with webhook notification channels and a public HTTPS webhook URL. To customize it, change the NorthDuty alert filters, add an IF or Switch node for client-specific routing, or map the NorthDuty severity into Jira priority. The NorthDuty incident ID is included in every description to make repeated reports easy to identify.",
+        "height": 540,
+        "width": 700,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-720, -360],
+      "id": "9b4eb594-ea65-4dbf-9db3-3b587a27e81b",
+      "name": "How this workflow works"
+    },
+    {
+      "parameters": {
+        "content": "### 1. Select the monitored website\nAdd NorthDuty credentials and choose the project. The trigger is already limited to critical user journey failures.",
+        "height": 200,
+        "width": 340
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-600, 250],
+      "id": "80192f77-5c13-49d8-a7fc-c6755aeb3d60",
+      "name": "Configure NorthDuty"
+    },
+    {
+      "parameters": {
+        "content": "### 2. Choose the Jira destination\nConnect Jira, then select the project and issue type. You can also map severity to priority or add labels in Additional Fields.",
+        "height": 200,
+        "width": 340
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [180, 250],
+      "id": "df332f08-84c3-4d4b-85c0-25ccb5f33a31",
+      "name": "Configure Jira"
+    },
+    {
+      "parameters": {
+        "projectId": "",
+        "severities": ["critical"],
+        "rules": ["user_flow_failure"]
+      },
+      "type": "n8n-nodes-northduty.northDutyTrigger",
+      "typeVersion": 1,
+      "position": [-440, 80],
+      "id": "b76ace40-123d-4483-826e-a8b575c8227d",
+      "name": "Watch for critical journey failures"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3873b0f0-127c-4566-92b1-e4414b1e5299",
+              "name": "issueSummary",
+              "value": "=[NorthDuty] {{ $json.project.name }}: {{ $json.ruleLabel }}",
+              "type": "string"
+            },
+            {
+              "id": "27757720-bd01-4e5d-a193-10689d865a70",
+              "name": "issueDescription",
+              "value": "=NorthDuty detected a critical customer-journey failure.\n\nWebsite: {{ $json.project.name }} ({{ $json.project.baseUrl }})\nIncident ID: {{ $json.id }}\nDetected: {{ $json.last_detected_at || $json.first_detected_at }}\n\n{{ $json.message }}\n\nInvestigate in NorthDuty: {{ $json.dashboardUrl }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-100, 80],
+      "id": "50a1baf0-741b-4545-b854-ce4974ed91cf",
+      "name": "Prepare the Jira issue"
+    },
+    {
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "project": "",
+        "issueType": "",
+        "summary": "={{ $json.issueSummary }}",
+        "additionalFields": {
+          "description": "={{ $json.issueDescription }}"
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1.1,
+      "position": [240, 80],
+      "id": "2e54cab2-960c-4711-86bb-168c04851d33",
+      "name": "Create the Jira issue"
+    }
+  ],
+  "pinData": {
+    "Watch for critical journey failures": [
+      {
+        "json": {
+          "id": 1042,
+          "title": "[NorthDuty] Demo Store: User journey failure",
+          "rule": "user_flow_failure",
+          "ruleLabel": "User journey failure",
+          "severity": "critical",
+          "project": {
+            "id": 8,
+            "name": "Demo Store",
+            "baseUrl": "https://example.com"
+          },
+          "threshold": null,
+          "observedValue": null,
+          "unit": "",
+          "comparator": "",
+          "dashboardUrl": "https://northduty.com/app/projects/123",
+          "message": "Checkout journey failed while submitting the order.",
+          "status": "open",
+          "first_detected_at": "2026-10-11T08:15:00+00:00",
+          "last_detected_at": "2026-10-11T08:15:00+00:00",
+          "resolved_at": null
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Watch for critical journey failures": {
+      "main": [[{"node": "Prepare the Jira issue", "type": "main", "index": 0}]]
+    },
+    "Prepare the Jira issue": {
+      "main": [[{"node": "Create the Jira issue", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c6307bf0-15db-47cb-83fc-a5933a021f80",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

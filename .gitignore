@@ -2,3 +2,5 @@ dist
 node_modules
 push-to-github.sh
 release-*.sh
+test-n8n-local.sh
+demo-n8n.sh

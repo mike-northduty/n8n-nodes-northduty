@@ -1,0 +1,140 @@
+{
+  "name": "Send critical NorthDuty alerts to Slack",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Send critical NorthDuty alerts to Slack\n\nThis workflow is for website owners, ecommerce teams, SaaS operators, and agencies that want critical monitoring failures to reach the right Slack channel immediately. NorthDuty watches customer journeys such as checkout, signup, login, and forms, as well as uptime, response time, SSL, domain, and website health.\n\nWhen NorthDuty raises a critical alert for the selected project, the trigger starts this workflow. The **Prepare the Slack message** node turns the alert into a short, readable message containing the affected project, alert type, explanation, and a direct link to the NorthDuty dashboard. The Slack node then posts it to the channel you choose.\n\n### Setup\n1. Add NorthDuty API credentials and choose the project to monitor.\n2. Connect Slack credentials and select the destination channel.\n3. Activate the workflow. The NorthDuty trigger registers and removes its webhook automatically.\n\nThe real-time trigger requires a NorthDuty plan with webhook notification channels and an n8n instance with a public HTTPS webhook URL. You can customize the message in the Edit Fields node, narrow the trigger to specific alert types, or add routing for different teams and clients.",
+        "height": 520,
+        "width": 700,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-720, -340],
+      "id": "c7a8632f-7b18-4d61-9c15-7f555508f9e1",
+      "name": "How this workflow works"
+    },
+    {
+      "parameters": {
+        "content": "### 1. Choose what should page the team\nSelect a NorthDuty project. This template already filters for **Critical** alerts; add alert-type filters if only checkout, login, SSL, or another signal should reach this channel.",
+        "height": 220,
+        "width": 360
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-620, 250],
+      "id": "33177346-8fa6-4564-adf1-0760a1a9bd65",
+      "name": "Configure NorthDuty"
+    },
+    {
+      "parameters": {
+        "content": "### 2. Pick the Slack channel\nConnect Slack credentials and select the channel that owns website incidents. Edit the message fields if your team needs a different format.",
+        "height": 220,
+        "width": 360
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [180, 250],
+      "id": "83932560-cbae-4d06-a617-f38935a04cf5",
+      "name": "Configure Slack"
+    },
+    {
+      "parameters": {
+        "projectId": "",
+        "severities": ["critical"],
+        "rules": []
+      },
+      "type": "n8n-nodes-northduty.northDutyTrigger",
+      "typeVersion": 1,
+      "position": [-440, 80],
+      "id": "e16d9526-50fd-4664-aa5f-a282a59000ce",
+      "name": "Watch for critical NorthDuty alerts"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "43d581f7-3861-4778-ac69-f7dc7793700c",
+              "name": "slackMessage",
+              "value": "=🚨 *{{ $json.severity.toUpperCase() }}: {{ $json.project.name }}*\n*{{ $json.ruleLabel }}*\n{{ $json.message }}\n<{{ $json.dashboardUrl }}|Open the NorthDuty dashboard>",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-120, 80],
+      "id": "25e65d1b-8f51-4918-a8d4-39da9b89b90f",
+      "name": "Prepare the Slack message"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "Choose a channel"
+        },
+        "text": "={{ $json.slackMessage }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [220, 80],
+      "id": "4df8050c-6499-48e5-8a3c-bab92c413c55",
+      "name": "Post the incident to Slack"
+    }
+  ],
+  "pinData": {
+    "Watch for critical NorthDuty alerts": [
+      {
+        "json": {
+          "id": 1042,
+          "title": "[NorthDuty] Demo Store: User journey failure",
+          "rule": "user_flow_failure",
+          "ruleLabel": "User journey failure",
+          "severity": "critical",
+          "project": {
+            "id": 8,
+            "name": "Demo Store",
+            "baseUrl": "https://example.com"
+          },
+          "threshold": null,
+          "observedValue": null,
+          "unit": "",
+          "comparator": "",
+          "dashboardUrl": "https://northduty.com/app/projects/123",
+          "message": "Checkout journey failed on the latest run.",
+          "status": "open",
+          "first_detected_at": "2026-10-11T08:15:00+00:00",
+          "last_detected_at": "2026-10-11T08:15:00+00:00",
+          "resolved_at": null
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Watch for critical NorthDuty alerts": {
+      "main": [[{"node": "Prepare the Slack message", "type": "main", "index": 0}]]
+    },
+    "Prepare the Slack message": {
+      "main": [[{"node": "Post the incident to Slack", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "df82af0d-82fc-4650-bd15-f5f9c13bcffd",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

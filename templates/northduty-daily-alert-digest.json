@@ -1,0 +1,149 @@
+{
+  "name": "Email a daily digest of NorthDuty monitoring alerts",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Email a daily digest of NorthDuty monitoring alerts\n\nThis workflow is for website owners, operations teams, and agencies that want a concise daily monitoring summary without forwarding every individual alert. It retrieves recent NorthDuty alerts each morning, keeps only activity detected during the previous 24 hours, builds a readable plain-text digest, and sends it through Gmail.\n\nThe Schedule Trigger starts the workflow at 8:00 each morning. The NorthDuty node fetches up to 50 recent alerts across all projects available to the API token. The Code node filters the results using each alert's latest or first detection time, then groups the important details into one message: project, severity, alert type, explanation, and dashboard link. If there were no alerts, the email says so rather than sending an empty report.\n\n### Setup\n1. Choose the schedule and timezone you want.\n2. Add NorthDuty API credentials. Reading alerts is available on every NorthDuty plan.\n3. Replace the placeholder recipient in **Set the digest recipient**, connect Gmail credentials, and test the workflow.\n\nYou can filter the NorthDuty node to one project, change the lookback period in the Code node, route client projects to different recipients, or replace Gmail with Outlook, Slack, Microsoft Teams, or a database.",
+        "height": 560,
+        "width": 720,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-900, -380],
+      "id": "88ed95c2-e3a0-4610-a601-3ddcb3910cb5",
+      "name": "How this workflow works"
+    },
+    {
+      "parameters": {
+        "content": "### 1. Pick the reporting window\nThe workflow runs daily at 08:00 and includes alerts detected in the previous 24 hours. Adjust the Schedule Trigger or `lookbackHours` in the Code node if needed.",
+        "height": 220,
+        "width": 360
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-780, 260],
+      "id": "7f436c39-7f2e-4e25-b3c4-f7785c6b8e96",
+      "name": "Configure the schedule"
+    },
+    {
+      "parameters": {
+        "content": "### 2. Set the recipient\nReplace `you@example.com` in the Edit Fields node, connect Gmail credentials, and send a test digest before activating the workflow.",
+        "height": 210,
+        "width": 350
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [220, 260],
+      "id": "ff948315-a283-459b-9aed-2983224999fa",
+      "name": "Configure email delivery"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-680, 80],
+      "id": "10a5699d-aa7a-4dc1-b132-97f5ab4db9a9",
+      "name": "Run every morning"
+    },
+    {
+      "parameters": {
+        "resource": "alert",
+        "operation": "getMany",
+        "projectId": "",
+        "limit": 50
+      },
+      "type": "n8n-nodes-northduty.northDuty",
+      "typeVersion": 1,
+      "position": [-420, 80],
+      "id": "14f029a5-8ad6-4242-837f-4c36ce83761e",
+      "name": "Get recent NorthDuty alerts"
+    },
+    {
+      "parameters": {
+        "jsCode": "const lookbackHours = 24;\nconst cutoff = Date.now() - lookbackHours * 60 * 60 * 1000;\n\nconst alerts = $input.all()\n  .map((item) => item.json)\n  .filter((alert) => {\n    const timestamp = alert.last_detected_at || alert.first_detected_at;\n    return timestamp && new Date(timestamp).getTime() >= cutoff;\n  })\n  .sort((a, b) => new Date(b.last_detected_at || b.first_detected_at) - new Date(a.last_detected_at || a.first_detected_at));\n\nif (alerts.length === 0) {\n  return [{ json: { alertCount: 0, digest: 'No NorthDuty alerts were detected during the previous 24 hours.' } }];\n}\n\nconst lines = alerts.map((alert, index) => {\n  const detected = alert.last_detected_at || alert.first_detected_at;\n  return [\n    `${index + 1}. [${String(alert.severity).toUpperCase()}] ${alert.project.name} — ${alert.ruleLabel}`,\n    `   ${alert.message}`,\n    `   Detected: ${detected}`,\n    `   ${alert.dashboardUrl}`,\n  ].join('\\n');\n});\n\nreturn [{\n  json: {\n    alertCount: alerts.length,\n    digest: `NorthDuty found ${alerts.length} alert${alerts.length === 1 ? '' : 's'} in the previous 24 hours.\\n\\n${lines.join('\\n\\n')}`,\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-140, 80],
+      "id": "0d7a7bb1-c0f8-49c8-9d18-bf20d0460f18",
+      "name": "Build the 24-hour digest"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c159036a-95a2-4854-b0ce-c1da85ddc6d7",
+              "name": "recipientEmail",
+              "value": "you@example.com",
+              "type": "string"
+            },
+            {
+              "id": "a2e488a7-d8f4-4a63-bbb1-700ece8a6017",
+              "name": "emailSubject",
+              "value": "=NorthDuty daily alert digest — {{ $now.toFormat('yyyy-LL-dd') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [140, 80],
+      "id": "ad7a7542-ab37-4b3b-9593-eec79e5f57a6",
+      "name": "Set the digest recipient"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.recipientEmail }}",
+        "subject": "={{ $json.emailSubject }}",
+        "emailType": "text",
+        "message": "={{ $json.digest }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [440, 80],
+      "id": "9664108e-2db7-4e32-ac16-5ec55633c8b2",
+      "name": "Email the daily digest"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Run every morning": {
+      "main": [[{"node": "Get recent NorthDuty alerts", "type": "main", "index": 0}]]
+    },
+    "Get recent NorthDuty alerts": {
+      "main": [[{"node": "Build the 24-hour digest", "type": "main", "index": 0}]]
+    },
+    "Build the 24-hour digest": {
+      "main": [[{"node": "Set the digest recipient", "type": "main", "index": 0}]]
+    },
+    "Set the digest recipient": {
+      "main": [[{"node": "Email the daily digest", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "UTC"
+  },
+  "versionId": "69f59842-7876-4c8f-884c-11f147829812",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
